@@ -10,7 +10,7 @@ Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake.
 
 ```toml
 [dependencies]
-philiprehberger-id-gen = "0.1.5"
+philiprehberger-id-gen = "0.1.6"
 ```
 
 ## Usage
@@ -47,6 +47,14 @@ println!("{}", id); // e.g. "6820873600000004097"
 | `SnowflakeGenerator::new(machine_id)` | Create a Snowflake generator |
 | `SnowflakeGenerator::with_epoch(machine_id, epoch)` | Custom epoch |
 | `.next_id()` | Generate next Snowflake ID |
+
+
+## Development
+
+```bash
+cargo test
+cargo clippy -- -D warnings
+```
 
 ## License
 
