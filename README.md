@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/philiprehberger-id-gen.svg)](https://crates.io/crates/philiprehberger-id-gen)
 [![License](https://img.shields.io/github/license/philiprehberger/rs-id-gen)](LICENSE)
 
-Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake.
+Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake
 
 ## Installation
 
