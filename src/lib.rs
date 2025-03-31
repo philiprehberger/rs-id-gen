@@ -108,6 +108,7 @@ fn now_millis() -> u64 {
 /// assert_eq!(id, parsed);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Ulid {
     /// Most significant 64 bits: 48-bit timestamp in upper bits + 16 bits of randomness.
     msb: u64,
@@ -166,6 +167,7 @@ impl Ulid {
     /// Generates a new ULID with the current timestamp.
     ///
     /// ULIDs generated within the same millisecond are monotonically ordered.
+    #[must_use]
     pub fn new() -> Self {
         let ms = now_millis();
 
@@ -295,6 +297,7 @@ impl FromStr for Ulid {
 /// assert_eq!(&s[14..15], "7"); // version nibble
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Uuid7 {
     /// Upper 64 bits of the UUID.
     msb: u64,
@@ -304,6 +307,7 @@ pub struct Uuid7 {
 
 impl Uuid7 {
     /// Generates a new UUIDv7 with the current timestamp.
+    #[must_use]
     pub fn new() -> Self {
         let ms = now_millis();
         let r1 = rand_u64();
@@ -443,12 +447,14 @@ const NANOID_DEFAULT_LEN: usize = 21;
 /// assert_eq!(custom.as_str().len(), 10);
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NanoId {
     value: String,
 }
 
 impl NanoId {
     /// Generates a new NanoID with the default alphabet (`A-Za-z0-9_-`) and length 21.
+    #[must_use]
     pub fn new() -> Self {
         Self::with_alphabet(
             std::str::from_utf8(NANOID_DEFAULT_ALPHABET).unwrap(),
@@ -461,6 +467,7 @@ impl NanoId {
     /// # Panics
     ///
     /// Panics if `alphabet` is empty.
+    #[must_use]
     pub fn with_alphabet(alphabet: &str, len: usize) -> Self {
         assert!(!alphabet.is_empty(), "alphabet must not be empty");
 
@@ -505,6 +512,12 @@ impl Default for NanoId {
 impl fmt::Display for NanoId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.value)
+    }
+}
+
+impl AsRef<str> for NanoId {
+    fn as_ref(&self) -> &str {
+        &self.value
     }
 }
 
@@ -556,6 +569,7 @@ pub struct SnowflakeGenerator {
 ///
 /// Layout: 1 unused sign bit | 41-bit timestamp | 10-bit machine ID | 12-bit sequence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Snowflake(u64);
 
 impl SnowflakeGenerator {
@@ -591,6 +605,7 @@ impl SnowflakeGenerator {
     ///
     /// IDs are monotonically increasing. If the sequence overflows within the same
     /// millisecond, this method busy-waits until the next millisecond.
+    #[must_use]
     pub fn next_id(&self) -> Snowflake {
         loop {
             let now = now_millis().saturating_sub(self.epoch_ms);
@@ -636,22 +651,22 @@ impl SnowflakeGenerator {
 
 impl Snowflake {
     /// Returns the raw 64-bit value.
-    pub fn value(&self) -> u64 {
+    pub const fn value(&self) -> u64 {
         self.0
     }
 
     /// Extracts the timestamp component (milliseconds since the generator's epoch).
-    pub fn timestamp(&self) -> u64 {
+    pub const fn timestamp(&self) -> u64 {
         self.0 >> 22
     }
 
     /// Extracts the machine ID component.
-    pub fn machine_id(&self) -> u16 {
+    pub const fn machine_id(&self) -> u16 {
         ((self.0 >> 12) & 0x3FF) as u16
     }
 
     /// Extracts the sequence number component.
-    pub fn sequence(&self) -> u16 {
+    pub const fn sequence(&self) -> u16 {
         (self.0 & 0xFFF) as u16
     }
 }
