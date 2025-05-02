@@ -10,7 +10,7 @@ Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake
 
 ```toml
 [dependencies]
-philiprehberger-id-gen = "0.2.0"
+philiprehberger-id-gen = "0.2.1"
 ```
 
 ## Usage
