@@ -1,10 +1,13 @@
 [package]
 name = "philiprehberger-id-gen"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["Philip Rehberger"]
 description = "Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake"
 license = "MIT"
 repository = "https://github.com/philiprehberger/rs-id-gen"
+readme = "README.md"
+rust-version = "1.70"
+documentation = "https://docs.rs/philiprehberger-id-gen"
 keywords = ["uuid", "ulid", "nanoid", "snowflake", "id"]
 categories = ["algorithms", "data-structures"]
