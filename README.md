@@ -10,7 +10,7 @@ Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake
 
 ```toml
 [dependencies]
-philiprehberger-id-gen = "0.1.6"
+philiprehberger-id-gen = "0.2.0"
 ```
 
 ## Usage
@@ -36,6 +36,13 @@ let id = gen.next_id();
 println!("{}", id); // e.g. "6820873600000004097"
 ```
 
+### Serde support
+
+```toml
+[dependencies]
+philiprehberger-id-gen = { version = "0.2.0", features = ["serde"] }
+```
+
 ## API
 
 | Type | Description |
@@ -47,6 +54,9 @@ println!("{}", id); // e.g. "6820873600000004097"
 | `SnowflakeGenerator::new(machine_id)` | Create a Snowflake generator |
 | `SnowflakeGenerator::with_epoch(machine_id, epoch)` | Custom epoch |
 | `.next_id()` | Generate next Snowflake ID |
+| `Snowflake::value()` | Get raw u64 value (const fn) |
+| `NanoId::as_ref()` | Get &str reference |
+| `From<u64> for Snowflake` | Construct from raw value |
 
 
 ## Development

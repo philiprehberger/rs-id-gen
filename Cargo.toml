@@ -1,6 +1,6 @@
 [package]
 name = "philiprehberger-id-gen"
-version = "0.1.6"
+version = "0.2.0"
 edition = "2021"
 authors = ["Philip Rehberger"]
 description = "Unified ID generation: ULID, UUIDv7, NanoID, and Snowflake"
@@ -11,3 +11,10 @@ rust-version = "1.70"
 documentation = "https://docs.rs/philiprehberger-id-gen"
 keywords = ["uuid", "ulid", "nanoid", "snowflake", "id"]
 categories = ["algorithms", "data-structures"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+
+[features]
+default = []
+serde = ["dep:serde"]

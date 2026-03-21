@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 (2026-03-21)
+
+- Add const fn for Snowflake accessor methods (value, timestamp, machine_id, sequence)
+- Add AsRef<str> implementation for NanoId
+- Add optional serde feature with Serialize/Deserialize for all ID types
+- Add From<u64> implementation for Snowflake
+- Add #[must_use] attributes on ID generation methods
+
 ## 0.1.6 (2026-03-17)
 
 - Add readme, rust-version, documentation to Cargo.toml
