@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (2026-03-22)
+
+- Fix stale version in serde usage snippet
+
 ## 0.2.1 (2026-03-22)
 
 - Fix CHANGELOG formatting
