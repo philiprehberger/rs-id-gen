@@ -212,6 +212,79 @@ impl Ulid {
     pub fn timestamp_ms(&self) -> u64 {
         self.msb >> 16
     }
+
+    /// Returns the 16-byte big-endian representation of this ULID.
+    ///
+    /// Bytes 0..8 are `msb` in big-endian, bytes 8..16 are `lsb` in big-endian.
+    /// Suitable for storing in a `BINARY(16)` column or transmitting over the
+    /// wire without the string encoding overhead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Ulid;
+    ///
+    /// let id = Ulid::new();
+    /// let bytes = id.to_bytes();
+    /// assert_eq!(bytes.len(), 16);
+    /// ```
+    #[must_use]
+    pub fn to_bytes(&self) -> [u8; 16] {
+        let mut bytes = [0u8; 16];
+        bytes[0..8].copy_from_slice(&self.msb.to_be_bytes());
+        bytes[8..16].copy_from_slice(&self.lsb.to_be_bytes());
+        bytes
+    }
+
+    /// Reconstructs a ULID from its 16-byte big-endian representation.
+    ///
+    /// Inverse of [`Ulid::to_bytes`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Ulid;
+    ///
+    /// let id = Ulid::new();
+    /// let bytes = id.to_bytes();
+    /// let restored = Ulid::from_bytes(bytes);
+    /// assert_eq!(id, restored);
+    /// ```
+    #[must_use]
+    pub fn from_bytes(bytes: [u8; 16]) -> Self {
+        let msb = u64::from_be_bytes(bytes[0..8].try_into().unwrap());
+        let lsb = u64::from_be_bytes(bytes[8..16].try_into().unwrap());
+        Ulid { msb, lsb }
+    }
+
+    /// Generates a ULID using the provided timestamp (in milliseconds since the
+    /// Unix epoch) and fresh randomness from the thread-local RNG.
+    ///
+    /// Useful for backfills and tests where a specific timestamp is required.
+    ///
+    /// Note: this constructor does **not** participate in the monotonic-within-
+    /// millisecond guarantee that [`Ulid::new`] provides, because it bypasses
+    /// the per-thread last-millisecond tracking. If you need monotonicity across
+    /// IDs generated in the same millisecond, use [`Ulid::new`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Ulid;
+    ///
+    /// let id = Ulid::from_timestamp_ms(1_700_000_000_000);
+    /// assert_eq!(id.timestamp_ms(), 1_700_000_000_000);
+    /// ```
+    #[must_use]
+    pub fn from_timestamp_ms(ms: u64) -> Self {
+        let r1 = rand_u64();
+        let r2 = rand_u64();
+        let rand_msb_16 = (r1 & 0xFFFF) as u16;
+        let rand_lsb_64 = r2;
+        let msb = (ms << 16) | (rand_msb_16 as u64);
+        let lsb = rand_lsb_64;
+        Ulid { msb, lsb }
+    }
 }
 
 impl Default for Ulid {
@@ -327,6 +400,80 @@ impl Uuid7 {
     /// Returns the timestamp component in milliseconds since Unix epoch.
     pub fn timestamp_ms(&self) -> u64 {
         self.msb >> 16
+    }
+
+    /// Returns the 16-byte big-endian representation of this UUIDv7.
+    ///
+    /// Bytes 0..8 are `msb` in big-endian, bytes 8..16 are `lsb` in big-endian.
+    /// This matches the standard RFC 9562 octet layout and is suitable for
+    /// storing in a `BINARY(16)` column or transmitting over the wire.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Uuid7;
+    ///
+    /// let id = Uuid7::new();
+    /// let bytes = id.to_bytes();
+    /// assert_eq!(bytes.len(), 16);
+    /// ```
+    #[must_use]
+    pub fn to_bytes(&self) -> [u8; 16] {
+        let mut bytes = [0u8; 16];
+        bytes[0..8].copy_from_slice(&self.msb.to_be_bytes());
+        bytes[8..16].copy_from_slice(&self.lsb.to_be_bytes());
+        bytes
+    }
+
+    /// Reconstructs a UUIDv7 from its 16-byte big-endian representation.
+    ///
+    /// Inverse of [`Uuid7::to_bytes`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Uuid7;
+    ///
+    /// let id = Uuid7::new();
+    /// let bytes = id.to_bytes();
+    /// let restored = Uuid7::from_bytes(bytes);
+    /// assert_eq!(id, restored);
+    /// ```
+    #[must_use]
+    pub fn from_bytes(bytes: [u8; 16]) -> Self {
+        let msb = u64::from_be_bytes(bytes[0..8].try_into().unwrap());
+        let lsb = u64::from_be_bytes(bytes[8..16].try_into().unwrap());
+        Uuid7 { msb, lsb }
+    }
+
+    /// Generates a UUIDv7 using the provided timestamp (in milliseconds since
+    /// the Unix epoch) and fresh randomness from the thread-local RNG.
+    ///
+    /// Useful for backfills and tests where a specific timestamp is required.
+    /// The resulting ID still has the correct version (`0x7`) and variant
+    /// (`0b10`) bits.
+    ///
+    /// Note: this constructor uses fresh randomness from the thread-local RNG
+    /// each call; it does not provide any monotonic-within-millisecond
+    /// guarantee.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Uuid7;
+    ///
+    /// let id = Uuid7::from_timestamp_ms(1_700_000_000_000);
+    /// assert_eq!(id.timestamp_ms(), 1_700_000_000_000);
+    /// ```
+    #[must_use]
+    pub fn from_timestamp_ms(ms: u64) -> Self {
+        let r1 = rand_u64();
+        let r2 = rand_u64();
+        let rand_a = r1 & 0x0FFF;
+        let msb = (ms << 16) | (0x7 << 12) | rand_a;
+        let rand_b = r2 & 0x3FFF_FFFF_FFFF_FFFF;
+        let lsb = (0b10u64 << 62) | rand_b;
+        Uuid7 { msb, lsb }
     }
 }
 
@@ -650,6 +797,25 @@ impl SnowflakeGenerator {
 }
 
 impl Snowflake {
+    /// Constructs a `Snowflake` from a raw 64-bit value.
+    ///
+    /// Useful when you already have a `u64` (for example, loaded from a
+    /// database row) and want a typed `Snowflake` without going through
+    /// `FromStr`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use philiprehberger_id_gen::Snowflake;
+    ///
+    /// let s = Snowflake::from_value(42);
+    /// assert_eq!(s.value(), 42);
+    /// ```
+    #[must_use]
+    pub const fn from_value(value: u64) -> Self {
+        Self(value)
+    }
+
     /// Returns the raw 64-bit value.
     pub const fn value(&self) -> u64 {
         self.0
@@ -889,5 +1055,54 @@ mod tests {
         // Timestamp should be relative to custom epoch, so much smaller
         let ts = id.timestamp();
         assert!(ts < now_millis()); // sanity check: relative ts < absolute ts
+    }
+
+    #[test]
+    fn ulid_to_from_bytes_roundtrip() {
+        let id = Ulid::new();
+        let bytes = id.to_bytes();
+        assert_eq!(bytes.len(), 16);
+        let parsed = Ulid::from_bytes(bytes);
+        assert_eq!(id, parsed);
+    }
+
+    #[test]
+    fn ulid_to_bytes_layout() {
+        let id = Ulid { msb: 0x0102_0304_0506_0708, lsb: 0x090A_0B0C_0D0E_0F10 };
+        let bytes = id.to_bytes();
+        assert_eq!(bytes, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    }
+
+    #[test]
+    fn ulid_from_timestamp_ms_preserves_timestamp() {
+        let id = Ulid::from_timestamp_ms(1_700_000_000_000);
+        assert_eq!(id.timestamp_ms(), 1_700_000_000_000);
+    }
+
+    #[test]
+    fn uuid7_to_from_bytes_roundtrip() {
+        let id = Uuid7::new();
+        let bytes = id.to_bytes();
+        assert_eq!(bytes.len(), 16);
+        let parsed = Uuid7::from_bytes(bytes);
+        assert_eq!(id, parsed);
+    }
+
+    #[test]
+    fn uuid7_from_timestamp_ms_preserves_version_and_variant() {
+        let id = Uuid7::from_timestamp_ms(1_700_000_000_000);
+        assert_eq!(id.timestamp_ms(), 1_700_000_000_000);
+        // Version nibble is the top 4 bits of (msb & 0xFFFF) at the version position
+        let version = (id.msb >> 12) & 0xF;
+        assert_eq!(version, 0x7);
+        // Variant is the top 2 bits of lsb
+        let variant = (id.lsb >> 62) & 0b11;
+        assert_eq!(variant, 0b10);
+    }
+
+    #[test]
+    fn snowflake_from_value_roundtrip() {
+        let s = Snowflake::from_value(123_456_789);
+        assert_eq!(s.value(), 123_456_789);
     }
 }

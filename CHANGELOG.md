@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (2026-05-30)
+
+- Add `to_bytes`/`from_bytes` for `Ulid` and `Uuid7` (16-byte big-endian)
+- Add `Ulid::from_timestamp_ms` and `Uuid7::from_timestamp_ms` for reconstructing IDs with a specific timestamp
+- Add `Snowflake::from_value` for constructing a `Snowflake` from a raw `u64`
+- Add `package-card.webp` reference to README
+- Sync README install snippet version with Cargo.toml
+
 ## 0.2.4 (2026-03-31)
 
 - Standardize README to 3-badge format with emoji Support section
